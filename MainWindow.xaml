@@ -148,6 +148,20 @@
         </Border>
       </Grid>
             <Button Content="Test" Click="Button_Click"/>
+            <CheckBox DataContext="{Binding SimulationViewModel, Source={StaticResource ViewModelLocator}}" Content="Testuj ciosy krytyczne" IsChecked="{Binding TrackCriticalHits}" Margin="10" Foreground="#FFFFF8F8" />
+            <ItemsControl Height="500" DataContext="{Binding SimulationViewModel, Source={StaticResource ViewModelLocator}}" ItemsSource="{Binding CriticalHitPercentages}" Foreground="#FFFBF5F5">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Key}" Margin="5" />
+                            <!-- Critical Multiplier -->
+                            <TextBlock Text=": " />
+                            <TextBlock Text="{Binding Value, StringFormat={}{0:F2}%}" Margin="5" />
+                            <!-- Percentage -->
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </StackPanel>
   </Grid>
 </Window>
