@@ -55,13 +55,14 @@ namespace AmoSim2.Player
             return Math.Min(val, 98); 
         }
         [JsonIgnore]
-        public double PlayerInicjatywaBase => Math.Round(PlayerViewModel.Player.BattleSpeed / PlayerViewModel.Enemy.BattleSpeed, 3);
-        [JsonIgnore]
-        public double EnemyInicjatywaBase => Math.Round(PlayerViewModel.Enemy.BattleSpeed / PlayerViewModel.Player.BattleSpeed, 3);
-
-
-
+        public double PlayerInicjatywaBase => Math.Max(1, Math.Min(5, Math.Round(PlayerViewModel.Player.BattleSpeed / PlayerViewModel.Enemy.BattleSpeed, 3))); 
         
+        [JsonIgnore]
+        public double EnemyInicjatywaBase => Math.Max(1, Math.Min(5, Math.Round(PlayerViewModel.Enemy.BattleSpeed / PlayerViewModel.Player.BattleSpeed, 3)));
+
+
+
+
         private double _playerInicjatywa;
         [JsonIgnore]
         public double PlayerInicjatywa
