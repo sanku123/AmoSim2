@@ -2,7 +2,9 @@
 using AmoSim2.Player;
 using CommonServiceLocator;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Input;
 using RelayCommand = AmoSim2.Others.RelayCommand;
@@ -23,6 +25,16 @@ namespace AmoSim2.ViewModel
             set { _progressValue = value; OnPropertyChanged(); }
         }
 
+        private bool _trackCriticalHits;
+        public bool TrackCriticalHits
+        {
+            get => _trackCriticalHits;
+            set
+            {
+                _trackCriticalHits = value;
+                OnPropertyChanged(nameof(TrackCriticalHits));
+            }
+        }
 
         private double _timeTakenInSeconds;
         public double TimeTakenInSeconds
@@ -97,6 +109,24 @@ namespace AmoSim2.ViewModel
             set { _drawPercentageText = value; OnPropertyChanged(); }
         }
 
+
+
+
+        private Dictionary<double, double> _criticalHitPercentages;
+        public Dictionary<double, double> CriticalHitPercentages
+        {
+            get => _criticalHitPercentages;
+            private set
+            {
+                _criticalHitPercentages = value;
+                OnPropertyChanged(nameof(CriticalHitPercentages));
+            }
+        }
+
+
+
+
+
         public ICommand StartSimulationCommand { get; }
 
         public SimulationViewModel()
@@ -111,7 +141,9 @@ namespace AmoSim2.ViewModel
             LostCount = 0;
             DrawCount = 0;
 
-            int iterations = 20000;
+            criticalValueCounts.Clear(); // Reset critical hit data
+
+            int iterations = 10000;
 
             ProgressValue = 0;
             startTime = DateTime.Now;
@@ -148,6 +180,9 @@ namespace AmoSim2.ViewModel
                 WinPercentageText = winPercentage.ToString("0.00") + "%";
                 LostPercentageText = lostPercentage.ToString("0.00") + "%";
                 DrawPercentageText = drawPercentage.ToString("0.00") + "%";
+
+                //Compute critical hit percentages
+                CriticalHitPercentages = GetCriticalHitPercentages();
             };
             worker.RunWorkerAsync();
         }
@@ -211,7 +246,11 @@ namespace AmoSim2.ViewModel
         private int PerformPlayerAttack(int targetHP, Model player, Model enemy)
         {
             double hitChance = Convert.ToInt32(Math.Max(player.PlayerHitChance, 2));
-            for (int i = 0; i < player.PlayerInicjatywa && (targetHP > 0); i++)
+
+            int fullAttacks = (int)Math.Floor(player.PlayerInicjatywaBase);
+            int chanceForExtraAttack = (int)(player.PlayerInicjatywaBase - fullAttacks);
+
+            for (int i = 0; i < fullAttacks && (targetHP > 0); i++)
             {
                 if (hitChance < rnd.Next(1, 101))
                     continue;
@@ -227,12 +266,25 @@ namespace AmoSim2.ViewModel
                 targetHP -= damage;
             }
 
+            if (chanceForExtraAttack < rnd.Next(1, 101) && (targetHP > 0) && hitChance < rnd.Next(1, 101) && enemy.BlockChance >= rnd.Next(1, 101))
+            {
+                int damage = CalculateDamage(player, enemy);
+
+                if (damage > 0 && player.Class == "Czarnoksiężnik" || player.Class == "Mag" && enemy.Race == "Jaszczuroczłek")
+                    damage = (int)(damage * 0.95);
+
+                targetHP -= damage;
+            }
+
             return targetHP;
         }
 
         private int PerformEnemyAttack(int targetHP, Model enemy, Model player)
         {
             double hitChance = Convert.ToInt32(Math.Max(enemy.EnemyHitChance, 2));
+
+            int fullAttacks = (int)Math.Floor(enemy.EnemyInicjatywaBase);
+            int chanceForExtraAttack = (int)(enemy.EnemyInicjatywaBase - fullAttacks);
 
             for (int i = 0; i < enemy.EnemyInicjatywa && (targetHP > 0); i++)
             {
@@ -250,8 +302,21 @@ namespace AmoSim2.ViewModel
                 targetHP -= damage;
             }
 
+            if (chanceForExtraAttack < rnd.Next(1, 101) && (targetHP > 0) && hitChance < rnd.Next(1, 101) && player.BlockChance >= rnd.Next(1, 101))
+            {
+                int damage = CalculateDamage(enemy, player);
+
+                if (damage > 0 && enemy.Class == "Czarnoksiężnik" || enemy.Class == "Mag" && player.Race == "Jaszczuroczłek")
+                    damage = (int)(damage * 0.95);
+
+                targetHP -= damage;
+            }
+
             return targetHP;
         }
+
+        private Dictionary<double, int> criticalValueCounts = new Dictionary<double, int>();
+
         private int CalculateDamage(Model attacker, Model defender)
         {
             int baseDamage = (int)(attacker.Attack + rnd.Next(1, (int)(5 * attacker.Level)));
@@ -266,10 +331,37 @@ namespace AmoSim2.ViewModel
             if (attacker.Class == "Czarnoksiężnik")
                 warlockDefenceBreak = defender.Defence - (int)(defender.Defence * (1 - (Math.Floor(attacker.Level/40)/100)));
 
+            // Get the critical multiplier
+            double criticalMultiplier = attacker.Critical();
+
+            // Only log critical hits if tracking is enabled
+            if (TrackCriticalHits)
+            {
+                if (criticalMultiplier != 1) // Skip logging non-critical hits
+                {
+                    if (!criticalValueCounts.TryGetValue(criticalMultiplier, out var count))
+                        criticalValueCounts[criticalMultiplier] = 1;
+                    else
+                        criticalValueCounts[criticalMultiplier] = count + 1;
+                }
+            }
+
             int calculatedDamage = (int)Math.Max(0, baseDamage * attacker.Critical() * attacker.ThiefDamagePenalty - defender.Defence - warlockDefenceBreak);
 
             return calculatedDamage + bonusDamage;
         }
+
+        public Dictionary<double, double> GetCriticalHitPercentages()
+        {
+            int totalCriticalHits = criticalValueCounts.Values.Sum();
+            return criticalValueCounts
+                .OrderBy(kvp => kvp.Key) // Sort by the critical hit multiplier
+                .ToDictionary(
+                    kvp => kvp.Key,       // Critical multiplier
+                    kvp => (double)kvp.Value / totalCriticalHits * 100 // Percentage
+                );
+        }
+
     }
 
 }
