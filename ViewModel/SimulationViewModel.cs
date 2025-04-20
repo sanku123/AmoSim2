@@ -246,7 +246,11 @@ namespace AmoSim2.ViewModel
         private int PerformPlayerAttack(int targetHP, Model player, Model enemy)
         {
             double hitChance = Convert.ToInt32(Math.Max(player.PlayerHitChance, 2));
-            for (int i = 0; i < player.PlayerInicjatywa && (targetHP > 0); i++)
+
+            int fullAttacks = (int)Math.Floor(player.PlayerInicjatywaBase);
+            int chanceForExtraAttack = (int)(player.PlayerInicjatywaBase - fullAttacks);
+
+            for (int i = 0; i < fullAttacks && (targetHP > 0); i++)
             {
                 if (hitChance < rnd.Next(1, 101))
                     continue;
@@ -262,12 +266,25 @@ namespace AmoSim2.ViewModel
                 targetHP -= damage;
             }
 
+            if (chanceForExtraAttack < rnd.Next(1, 101) && (targetHP > 0) && hitChance < rnd.Next(1, 101) && enemy.BlockChance >= rnd.Next(1, 101))
+            {
+                int damage = CalculateDamage(player, enemy);
+
+                if (damage > 0 && player.Class == "Czarnoksiężnik" || player.Class == "Mag" && enemy.Race == "Jaszczuroczłek")
+                    damage = (int)(damage * 0.95);
+
+                targetHP -= damage;
+            }
+
             return targetHP;
         }
 
         private int PerformEnemyAttack(int targetHP, Model enemy, Model player)
         {
             double hitChance = Convert.ToInt32(Math.Max(enemy.EnemyHitChance, 2));
+
+            int fullAttacks = (int)Math.Floor(enemy.EnemyInicjatywaBase);
+            int chanceForExtraAttack = (int)(enemy.EnemyInicjatywaBase - fullAttacks);
 
             for (int i = 0; i < enemy.EnemyInicjatywa && (targetHP > 0); i++)
             {
@@ -277,6 +294,16 @@ namespace AmoSim2.ViewModel
                 if (player.BlockChance >= rnd.Next(1, 101))
                     continue;
 
+                int damage = CalculateDamage(enemy, player);
+
+                if (damage > 0 && enemy.Class == "Czarnoksiężnik" || enemy.Class == "Mag" && player.Race == "Jaszczuroczłek")
+                    damage = (int)(damage * 0.95);
+
+                targetHP -= damage;
+            }
+
+            if (chanceForExtraAttack < rnd.Next(1, 101) && (targetHP > 0) && hitChance < rnd.Next(1, 101) && player.BlockChance >= rnd.Next(1, 101))
+            {
                 int damage = CalculateDamage(enemy, player);
 
                 if (damage > 0 && enemy.Class == "Czarnoksiężnik" || enemy.Class == "Mag" && player.Race == "Jaszczuroczłek")
