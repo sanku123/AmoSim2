@@ -3,6 +3,7 @@ using AmoSim2.Player;
 using CommonServiceLocator;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows.Controls;
@@ -35,6 +36,31 @@ namespace AmoSim2.ViewModel
                 OnPropertyChanged(nameof(TrackCriticalHits));
             }
         }
+
+        private ObservableCollection<string> _singleBattleLog = new ObservableCollection<string>();
+
+        public ObservableCollection<string> SingleBattleLog
+        {
+            get => _singleBattleLog;
+            set
+            {
+                _singleBattleLog = value;
+                OnPropertyChanged(nameof(SingleBattleLog));
+            }
+        }
+
+        private string _battleLogText;
+        public string BattleLogText
+        {
+            get => _battleLogText;
+            set
+            {
+                _battleLogText = value;
+                OnPropertyChanged(nameof(BattleLogText));
+            }
+        }
+
+
 
         private double _timeTakenInSeconds;
         public double TimeTakenInSeconds
@@ -126,15 +152,82 @@ namespace AmoSim2.ViewModel
 
 
 
+        public ICommand StartSingleModeCommand { get; }
 
-        public ICommand StartSimulationCommand { get; }
+        public ICommand StartMultiModeCommand { get; }
 
         public SimulationViewModel()
         {
-            StartSimulationCommand = new RelayCommand(StartSimulation);
+            StartMultiModeCommand = new RelayCommand(StartMultiMode);
+            StartSingleModeCommand = new RelayCommand(StartSingleMode);
+
+            SingleBattleLog.CollectionChanged += (s, e) =>
+            {
+                BattleLogText = string.Join(Environment.NewLine, SingleBattleLog);
+            };
+
         }
 
-        private void StartSimulation(object parameter)
+        private void StartSingleMode(object parameter)
+        {
+            SingleBattleLog.Clear();
+
+            var player = PlayerViewModel.Player;
+            var enemy = PlayerViewModel.Enemy;
+
+            int playerHealthPoints = (int)player.HP + (int)player.HP_Bonus;
+            int enemyHealthPoints = (int)enemy.HP + (int)enemy.HP_Bonus;
+
+            bool playerGoesFirst = player.BattleSpeed > enemy.BattleSpeed;
+
+            for (int i = 1; i <= 24; i++)
+            {
+                SingleBattleLog.Add(Environment.NewLine);
+                SingleBattleLog.Add($"--- Runda {i} ---");
+
+                if (playerGoesFirst)
+                {
+                    enemyHealthPoints = PerformPlayerAttack(enemyHealthPoints, player, enemy, true);
+                    if (enemyHealthPoints < 1)
+                    {
+                        SingleBattleLog.Add($"{player.Nickname} zwycięża!");
+                        return;
+                    }
+
+                    playerHealthPoints = PerformEnemyAttack(playerHealthPoints, enemy, player, true);
+                    if (playerHealthPoints < 1)
+                    {
+                        SingleBattleLog.Add($"{enemy.Nickname} zwycięża!");
+                        return;
+                    }
+                }
+                else
+                {
+                    playerHealthPoints = PerformEnemyAttack(playerHealthPoints, enemy, player, true);
+                    if (playerHealthPoints < 1)
+                    {
+                        SingleBattleLog.Add($"{enemy.Nickname} zwycięża!");
+                        return;
+                    }
+
+                    enemyHealthPoints = PerformPlayerAttack(enemyHealthPoints, player, enemy, true);
+                    if (enemyHealthPoints < 1)
+                    {
+                        SingleBattleLog.Add($"{player.Nickname} zwycięża!");
+                        return;
+                    }
+                }
+
+                if (i == 24)
+                {
+                    SingleBattleLog.Add("Walka zakończyła się remisem.");
+                    return;
+                }
+            }
+        }
+
+
+        private void StartMultiMode(object parameter)
         {
             AverageRounds = 0;
             WinCount = 0;
@@ -243,7 +336,7 @@ namespace AmoSim2.ViewModel
             }
         }
 
-        private int PerformPlayerAttack(int targetHP, Model player, Model enemy)
+        private int PerformPlayerAttack(int targetHP, Model player, Model enemy, bool log = false)
         {
             double hitChance = Convert.ToInt32(Math.Max(player.PlayerHitChance, 2));
 
@@ -253,33 +346,57 @@ namespace AmoSim2.ViewModel
             for (int i = 0; i < fullAttacks && (targetHP > 0); i++)
             {
                 if (hitChance < rnd.Next(1, 101))
+                {
+                    if (log) SingleBattleLog.Add($"{enemy.Nickname} uniknął ataku {player.Nickname}.");
                     continue;
+                }
 
                 if (enemy.BlockChance >= rnd.Next(1, 101))
+                {
+                    if (log) SingleBattleLog.Add($"{enemy.Nickname} zablokował atak {player.Nickname}.");
                     continue;
+                }
 
-                int damage = CalculateDamage(player, enemy);
+                double crit = player.Critical();
+                int damage = CalculateDamage(player, enemy, crit);
 
                 if (damage > 0 && player.Class == "Czarnoksiężnik" || player.Class == "Mag" && enemy.Race == "Jaszczuroczłek")
                     damage = (int)(damage * 0.95);
 
                 targetHP -= damage;
+
+                if (log)
+                {
+                    if (crit > 1)
+                        SingleBattleLog.Add($"{player.Nickname} w przypływie szału walki atakuje {enemy.Nickname} i zadaje {damage} obrażeń! ({targetHP} zostało).(CRIT x{crit})");
+                    else
+                        SingleBattleLog.Add($"{player.Nickname} atakuje {enemy.Nickname} i zadaje {damage} obrażeń! ({targetHP} zostało)");
+                }
             }
 
             if (chanceForExtraAttack < rnd.Next(1, 101) && (targetHP > 0) && hitChance < rnd.Next(1, 101) && enemy.BlockChance < rnd.Next(1, 101))
             {
-                int damage = CalculateDamage(player, enemy);
+                double crit = player.Critical();
+                int damage = CalculateDamage(player, enemy, crit);
 
                 if (damage > 0 && player.Class == "Czarnoksiężnik" || player.Class == "Mag" && enemy.Race == "Jaszczuroczłek")
                     damage = (int)(damage * 0.95);
 
                 targetHP -= damage;
+
+                if (log)
+                {
+                    if (crit > 1)
+                        SingleBattleLog.Add($"{player.Nickname} w przypływie szału walki atakuje {enemy.Nickname} i zadaje {damage} obrażeń! ({targetHP} zostało).(CRIT x{crit})");
+                    else
+                        SingleBattleLog.Add($"{player.Nickname} atakuje {enemy.Nickname} i zadaje {damage} obrażeń! ({targetHP} zostało)");
+                }
             }
 
             return targetHP;
         }
 
-        private int PerformEnemyAttack(int targetHP, Model enemy, Model player)
+        private int PerformEnemyAttack(int targetHP, Model enemy, Model player, bool log = false)
         {
             double hitChance = Convert.ToInt32(Math.Max(enemy.EnemyHitChance, 2));
 
@@ -289,27 +406,51 @@ namespace AmoSim2.ViewModel
             for (int i = 0; i < enemy.EnemyInicjatywa && (targetHP > 0); i++)
             {
                 if (hitChance < rnd.Next(1, 101))
+                {
+                    if (log) SingleBattleLog.Add($"{player.Nickname} uniknął ataku {enemy.Nickname} .");
                     continue;
+                }
 
                 if (player.BlockChance >= rnd.Next(1, 101))
+                {
+                    if (log) SingleBattleLog.Add($"{player.Nickname} zablokował atak {enemy.Nickname}.");
                     continue;
+                }
 
-                int damage = CalculateDamage(enemy, player);
+                double crit = enemy.Critical();
+                int damage = CalculateDamage(enemy, player, crit);
 
                 if (damage > 0 && enemy.Class == "Czarnoksiężnik" || enemy.Class == "Mag" && player.Race == "Jaszczuroczłek")
                     damage = (int)(damage * 0.95);
 
                 targetHP -= damage;
+
+                if (log)
+                {
+                    if (crit > 1)
+                        SingleBattleLog.Add($"{enemy.Nickname} w przypływie szału walki atakuje {player.Nickname} i zadaje {damage} obrażeń! ({targetHP} zostało).(CRIT x{crit})");
+                    else
+                        SingleBattleLog.Add($"{enemy.Nickname} atakuje {player.Nickname} i zadaje {damage} obrażeń! ({targetHP} zostało)");
+                }
             }
 
             if (chanceForExtraAttack < rnd.Next(1, 101) && (targetHP > 0) && hitChance < rnd.Next(1, 101) && player.BlockChance < rnd.Next(1, 101))
             {
-                int damage = CalculateDamage(enemy, player);
+                double crit = enemy.Critical();
+                int damage = CalculateDamage(enemy, player, crit);
 
                 if (damage > 0 && enemy.Class == "Czarnoksiężnik" || enemy.Class == "Mag" && player.Race == "Jaszczuroczłek")
                     damage = (int)(damage * 0.95);
 
                 targetHP -= damage;
+
+                if (log)
+                {
+                    if (crit > 1)
+                        SingleBattleLog.Add($"{enemy.Nickname} w przypływie szału walki atakuje {player.Nickname} i zadaje {damage} obrażeń! ({targetHP} zostało).(CRIT x{crit})");
+                    else
+                        SingleBattleLog.Add($"{enemy.Nickname} atakuje {player.Nickname} i zadaje {damage} obrażeń! ({targetHP} zostało)");
+                }
             }
 
             return targetHP;
@@ -317,12 +458,12 @@ namespace AmoSim2.ViewModel
 
         private Dictionary<double, int> criticalValueCounts = new Dictionary<double, int>();
 
-        private int CalculateDamage(Model attacker, Model defender)
+        private int CalculateDamage(Model attacker, Model defender, double criticalMultiplier)
         {
             int baseDamage = (int)(attacker.Attack + rnd.Next(1, (int)(5 * attacker.Level)));
             double warlockDefenceBreak = 0;
-
             int bonusDamage = 0;
+
             if (attacker.Class == "Łowca" && defender.Race != "Jaszczuroczłek")
                 bonusDamage = attacker.BonusŁowcy;
             else if (attacker.Class == "Czarnoksiężnik")
@@ -331,22 +472,15 @@ namespace AmoSim2.ViewModel
             if (attacker.Class == "Czarnoksiężnik")
                 warlockDefenceBreak = defender.Defence - (int)(defender.Defence * (1 - (Math.Floor(attacker.Level/40)/100)));
 
-            // Get the critical multiplier
-            double criticalMultiplier = attacker.Critical();
-
-            // Only log critical hits if tracking is enabled
-            if (TrackCriticalHits)
+            if (TrackCriticalHits && criticalMultiplier != 1)
             {
-                if (criticalMultiplier != 1) // Skip logging non-critical hits
-                {
-                    if (!criticalValueCounts.TryGetValue(criticalMultiplier, out var count))
-                        criticalValueCounts[criticalMultiplier] = 1;
-                    else
-                        criticalValueCounts[criticalMultiplier] = count + 1;
-                }
+                if (!criticalValueCounts.TryGetValue(criticalMultiplier, out var count))
+                    criticalValueCounts[criticalMultiplier] = 1;
+                else
+                    criticalValueCounts[criticalMultiplier] = count + 1;
             }
 
-            int calculatedDamage = (int)Math.Max(0, baseDamage * attacker.Critical() * attacker.ThiefDamagePenalty - defender.Defence - warlockDefenceBreak);
+            int calculatedDamage = (int)Math.Max(0, baseDamage * criticalMultiplier * attacker.ThiefDamagePenalty - defender.Defence - warlockDefenceBreak);
 
             return calculatedDamage + bonusDamage;
         }

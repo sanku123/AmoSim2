@@ -95,15 +95,23 @@
 
         <Border Grid.Row="2" DataContext="{Binding PlayerViewModel.Player, Source={StaticResource ViewModelLocator}}" Style="{StaticResource Card}">
           <StackPanel Orientation="Vertical">
-            <Label HorizontalContentAlignment="Center" Content="{Binding Nickname}" FontSize="18" Foreground="#FFF9DC9C" Style="{StaticResource CardLabel}" />
-            <Label HorizontalAlignment="Center" Content="{Binding Build}" Style="{StaticResource CardLabel}" />
+            <TextBox HorizontalContentAlignment="Center" Text="{Binding Nickname}" FontSize="18" Foreground="#FFF9DC9C"  >
+                            <TextBox.Background>
+                                <SolidColorBrush Color="White" Opacity="0"/>
+                            </TextBox.Background>
+                        </TextBox>
+                        <Label HorizontalAlignment="Center" Content="{Binding Build}" Style="{StaticResource CardLabel}" />
           </StackPanel>
         </Border>
 
         <Border Grid.Row="2" Grid.Column="1" DataContext="{Binding PlayerViewModel.Enemy, Source={StaticResource ViewModelLocator}}" Style="{StaticResource Card}">
           <StackPanel Orientation="Vertical">
-            <Label HorizontalContentAlignment="Center" Content="{Binding Nickname}" FontSize="18" Foreground="#FFF9DC9C" Style="{StaticResource CardLabel}" />
-            <Label HorizontalContentAlignment="Center" Content="{Binding Build}" Style="{StaticResource CardLabel}" />
+                        <TextBox HorizontalContentAlignment="Center" Text="{Binding Nickname}" FontSize="18" Foreground="#FFF9DC9C"  >
+                            <TextBox.Background>
+                                <SolidColorBrush Color="White" Opacity="0"/>
+                            </TextBox.Background>
+                        </TextBox>
+                        <Label HorizontalContentAlignment="Center" Content="{Binding Build}" Style="{StaticResource CardLabel}" />
           </StackPanel>
         </Border>
 
@@ -124,13 +132,9 @@
           <Label HorizontalAlignment="Right" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Content=":" FontSize="24" FontWeight="Light" Foreground="White" />
                     <Label DataContext="{Binding PlayerViewModel.Enemy, Source={StaticResource ViewModelLocator}}" x:Name="EnemyTrafienieLbl" Content="{Binding EnemyHitChance}" Margin="0,0,0,0" HorizontalAlignment="Left" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" ContentStringFormat="N2" FontFamily="Segoe UI Semibold" FontSize="24" FontWeight="Light" Foreground="White" />
         </StackPanel>
-        <ScrollViewer x:Name="scrollBattle" Grid.Row="5" Grid.ColumnSpan="2" HorizontalContentAlignment="Stretch" VerticalScrollBarVisibility="Hidden" Visibility="Collapsed">
-          <TextBlock x:Name="BattleLog" Grid.Row="5" Grid.ColumnSpan="2" Height="auto" Margin="8,16,8,12" Padding="16" FontFamily="Verdana" FontWeight="Bold" Foreground="#FFFCFCFC" Opacity="0.85" TextWrapping="Wrap">
-            <TextBlock.Background>
-              <SolidColorBrush Opacity="0.03" Color="White" />
-            </TextBlock.Background>
-          </TextBlock>
-        </ScrollViewer>
+          
+        
+          
         <Border Grid.Row="6" Grid.ColumnSpan="2" Height="60" Style="{StaticResource Card}">
           <Grid Margin="0,6,0,0">
             <Grid.ColumnDefinitions>
@@ -140,7 +144,8 @@
               <ColumnDefinition />
               <ColumnDefinition />
             </Grid.ColumnDefinitions>
-            <Button Grid.Column="0" Grid.ColumnSpan="2" Margin="6" DataContext="{Binding SimulationViewModel, Source={StaticResource ViewModelLocator}}" Command="{Binding StartSimulationCommand}" Content="START" Style="{StaticResource LargeButton}" />
+            <Button Grid.Column="0" Grid.ColumnSpan="1" Margin="6" DataContext="{Binding SimulationViewModel, Source={StaticResource ViewModelLocator}}" Command="{Binding StartSingleModeCommand}" Content="SINGLE" Style="{StaticResource LargeButton}" />
+            <Button Grid.Column="1" Grid.ColumnSpan="1" Margin="6" DataContext="{Binding SimulationViewModel, Source={StaticResource ViewModelLocator}}" Command="{Binding StartMultiModeCommand}" Content="MULTI" Style="{StaticResource LargeButton}" />
             <TextBox x:Name="Win_Tb" DataContext="{Binding SimulationViewModel, Source={StaticResource ViewModelLocator}}" Text="{Binding WinPercentageText}" Grid.Column="2" Margin="6" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background="{x:Null}" BorderBrush="#FF7CC582" Focusable="False" FontFamily="Segoe UI Semibold" FontSize="18" Foreground="White" IsReadOnly="True" TextWrapping="Wrap" />
             <TextBox x:Name="Draw_Tb" DataContext="{Binding SimulationViewModel, Source={StaticResource ViewModelLocator}}" Text="{Binding DrawPercentageText}" Grid.Column="3" Margin="6" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background="{x:Null}" BorderBrush="#FFC9A570" Focusable="False" FontFamily="Segoe UI Semibold" FontSize="18" Foreground="White" IsReadOnly="True" TextWrapping="Wrap" />
             <TextBox x:Name="Lost_Tb" DataContext="{Binding SimulationViewModel, Source={StaticResource ViewModelLocator}}" Text="{Binding LostPercentageText}" Grid.Column="4" Margin="6" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background="{x:Null}" BorderBrush="#FFBF7B7B" Focusable="False" FontFamily="Segoe UI Semibold" FontSize="18" Foreground="White" IsReadOnly="True" TextWrapping="Wrap" />
@@ -149,7 +154,8 @@
       </Grid>
             <Button Content="Test" Click="Button_Click"/>
             <CheckBox DataContext="{Binding SimulationViewModel, Source={StaticResource ViewModelLocator}}" Content="Testuj ciosy krytyczne" IsChecked="{Binding TrackCriticalHits}" Margin="10" Foreground="#FFFFF8F8" />
-            <ItemsControl Height="500" DataContext="{Binding SimulationViewModel, Source={StaticResource ViewModelLocator}}" ItemsSource="{Binding CriticalHitPercentages}" Foreground="#FFFBF5F5">
+
+            <ItemsControl Height="20" DataContext="{Binding SimulationViewModel, Source={StaticResource ViewModelLocator}}" ItemsSource="{Binding CriticalHitPercentages}" Foreground="#FFFBF5F5">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
@@ -162,6 +168,29 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
+
+            <ScrollViewer x:Name="scrollBattle"
+              VerticalScrollBarVisibility="Auto"
+              HorizontalScrollBarVisibility="Disabled"
+              HorizontalContentAlignment="Stretch"
+              VerticalContentAlignment="Top" 
+                          Height="500">
+                <TextBox x:Name="BattleLog"
+             DataContext="{Binding SimulationViewModel, Source={StaticResource ViewModelLocator}}"
+             Margin="8,16,8,12"
+             Padding="16"
+             FontFamily="Verdana"
+             FontWeight="Bold"
+             Foreground="#FFFCFCFC"
+             Background="Transparent"
+             BorderThickness="0"
+             Opacity="0.85"
+             IsReadOnly="True"
+             TextWrapping="Wrap"
+             AcceptsReturn="True"
+             Text="{Binding BattleLogText, UpdateSourceTrigger=PropertyChanged}" />
+            </ScrollViewer>
+
         </StackPanel>
   </Grid>
 </Window>
