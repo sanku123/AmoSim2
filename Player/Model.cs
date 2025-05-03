@@ -328,7 +328,7 @@ namespace AmoSim2.Player
         }
 
         [JsonIgnore]
-        public int BonusŁowcy => Class == "Łowca" ? (int)(Level * (2 / 3)) : 0;
+        public int BonusŁowcy => Class == "Łowca" ? (int)(Level * 2 / 3.0) : 0;
 
         [JsonIgnore]
         public int WarlockPoisonDamage => Class == "Czarnoksiężnik" ? (int)(Level * 1.25) : 0;

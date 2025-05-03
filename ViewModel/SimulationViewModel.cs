@@ -374,7 +374,7 @@ namespace AmoSim2.ViewModel
                 }
             }
 
-            if (chanceForExtraAttack < rnd.Next(1, 101) && (targetHP > 0) && hitChance < rnd.Next(1, 101) && enemy.BlockChance < rnd.Next(1, 101))
+            if (fullAttacks > 1 && chanceForExtraAttack < rnd.Next(1, 101) && (targetHP > 0) && hitChance < rnd.Next(1, 101) && enemy.BlockChance < rnd.Next(1, 101))
             {
                 double crit = player.Critical();
                 int damage = CalculateDamage(player, enemy, crit);
@@ -403,7 +403,7 @@ namespace AmoSim2.ViewModel
             int fullAttacks = (int)Math.Floor(enemy.EnemyInicjatywaBase);
             double chanceForExtraAttack = enemy.EnemyInicjatywaBase - fullAttacks;
 
-            for (int i = 0; i < enemy.EnemyInicjatywa && (targetHP > 0); i++)
+            for (int i = 0; i < fullAttacks && (targetHP > 0); i++)
             {
                 if (hitChance < rnd.Next(1, 101))
                 {
@@ -434,7 +434,7 @@ namespace AmoSim2.ViewModel
                 }
             }
 
-            if (chanceForExtraAttack < rnd.Next(1, 101) && (targetHP > 0) && hitChance < rnd.Next(1, 101) && player.BlockChance < rnd.Next(1, 101))
+            if (fullAttacks > 1 && chanceForExtraAttack < rnd.Next(1, 101) && (targetHP > 0) && hitChance < rnd.Next(1, 101) && player.BlockChance < rnd.Next(1, 101))
             {
                 double crit = enemy.Critical();
                 int damage = CalculateDamage(enemy, player, crit);
