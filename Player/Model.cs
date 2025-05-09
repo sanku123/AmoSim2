@@ -59,7 +59,9 @@ namespace AmoSim2.Player
 
                 if (Warrior) return value + (double)Math.Round((0.25 + (Level / 5800)) * Strength, 2);
                 else if (Archer) return value + (double)Math.Round((0.25 + (Level / 1950)) * Agility, 2);
+                else if (Mage && Race == "Gnom") return value + (double)Math.Round((0.25 + (Level / 1420)) * Inteligence + (Level*10), 2);
                 else if (Mage) return value + (double)Math.Round((0.25 + (Level / 1420)) * Inteligence, 2);
+
                 return 0;
             }
         }
