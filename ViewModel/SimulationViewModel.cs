@@ -341,7 +341,7 @@ namespace AmoSim2.ViewModel
             double hitChance = Convert.ToInt32(Math.Max(player.PlayerHitChance, 2));
 
             int fullAttacks = (int)Math.Floor(player.PlayerInicjatywaBase);
-            double chanceForExtraAttack = player.PlayerInicjatywaBase - fullAttacks;
+            double chanceForExtraAttack = (int)Math.Round((player.PlayerInicjatywaBase - fullAttacks)*100);
 
             for (int i = 0; i < fullAttacks && (targetHP > 0); i++)
             {
@@ -401,7 +401,7 @@ namespace AmoSim2.ViewModel
             double hitChance = Convert.ToInt32(Math.Max(enemy.EnemyHitChance, 2));
 
             int fullAttacks = (int)Math.Floor(enemy.EnemyInicjatywaBase);
-            double chanceForExtraAttack = enemy.EnemyInicjatywaBase - fullAttacks;
+            double chanceForExtraAttack = (int)Math.Round((enemy.EnemyInicjatywaBase - fullAttacks) * 100);
 
             for (int i = 0; i < fullAttacks && (targetHP > 0); i++)
             {
