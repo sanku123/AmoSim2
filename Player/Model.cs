@@ -129,6 +129,10 @@ namespace AmoSim2.Player
         {
             if (Class == "Mag" || Class == "Czarnoksiężnik")
             {
+                if (SelectedFirstSpellSlot == "1.1 x Siła Woli 1.4 x Szybkość")
+                {
+                    return (0.45 * Speed) + EvasionSkill + EvasionBless + HobbyteRobe + MageEvasion + Level + (BaseSpeed * 0.2);
+                }
                 return (0.45 * Speed) + EvasionSkill + EvasionBless + HobbyteRobe + MageEvasion + Level;
             }
             else
