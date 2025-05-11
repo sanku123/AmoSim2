@@ -346,6 +346,9 @@ namespace AmoSim2.Player
             {
                 switch (Class)
                 {
+                    case "Wojownik" when Race == "Elf":
+                        return Math.Floor(Level / 15) * 2;
+
                     case "Wojownik" when Class != "Mag":
                         return Math.Floor(Level / 15);
 
