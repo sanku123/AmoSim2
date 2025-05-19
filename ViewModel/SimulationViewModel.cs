@@ -360,8 +360,11 @@ namespace AmoSim2.ViewModel
                 double crit = attacker.Critical();
                 int damage = CalculateDamage(attacker, defender, crit);
 
-                if (damage > 0 &&
-                   ((attacker.Class == "Czarnoksiężnik" || attacker.Class == "Mag") && defender.Race == "Jaszczuroczłek"))
+                if (damage > 0 && (attacker.Class == "Czarnoksiężnik" || attacker.Class == "Mag") && defender.Race == "Jaszczuroczłek")
+                {
+                    damage = (int)(damage * 0.95);
+                }
+                if (damage > 0 && (attacker.Class != "Czarnoksiężnik" || attacker.Class != "Mag") && defender.Race == "Wilkołak")
                 {
                     damage = (int)(damage * 0.95);
                 }
@@ -390,6 +393,10 @@ namespace AmoSim2.ViewModel
 
                 if (damage > 0 &&
                    ((attacker.Class == "Czarnoksiężnik" || attacker.Class == "Mag") && defender.Race == "Jaszczuroczłek"))
+                {
+                    damage = (int)(damage * 0.95);
+                }
+                if (damage > 0 && (attacker.Class != "Czarnoksiężnik" || attacker.Class != "Mag") && defender.Race == "Wilkołak")
                 {
                     damage = (int)(damage * 0.95);
                 }
