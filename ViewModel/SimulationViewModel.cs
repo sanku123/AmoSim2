@@ -359,7 +359,7 @@ namespace AmoSim2.ViewModel
                 }
                 else if ((attacker.Class != "Czarnoksiężnik" || attacker.Class != "Mag") && defender.Class == "Wojownik" && defender.Race == "Elf")
                 {
-                    blockChance = (int)Math.Ceiling(defender.Level / 7.5);
+                    blockChance = (int)Math.Ceiling(defender.Level / 7);
 
                 }
                 else if ((attacker.Class != "Czarnoksiężnik" || attacker.Class != "Mag") && defender.Class == "Wojownik")
