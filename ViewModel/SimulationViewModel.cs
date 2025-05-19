@@ -187,14 +187,14 @@ namespace AmoSim2.ViewModel
 
                 if (playerGoesFirst)
                 {
-                    enemyHealthPoints = PerformPlayerAttack(enemyHealthPoints, player, enemy, true);
+                    enemyHealthPoints = PerformAttack(enemyHealthPoints, player, enemy, attackerIsPlayer: true, log: true);
                     if (enemyHealthPoints < 1)
                     {
                         SingleBattleLog.Add($"{player.Nickname} zwycięża!");
                         return;
                     }
 
-                    playerHealthPoints = PerformEnemyAttack(playerHealthPoints, enemy, player, true);
+                    playerHealthPoints = PerformAttack(playerHealthPoints, enemy, player, attackerIsPlayer: false, log: true);
                     if (playerHealthPoints < 1)
                     {
                         SingleBattleLog.Add($"{enemy.Nickname} zwycięża!");
@@ -203,14 +203,14 @@ namespace AmoSim2.ViewModel
                 }
                 else
                 {
-                    playerHealthPoints = PerformEnemyAttack(playerHealthPoints, enemy, player, true);
+                    playerHealthPoints = PerformAttack(playerHealthPoints, enemy, player, attackerIsPlayer: false, log: true);
                     if (playerHealthPoints < 1)
                     {
                         SingleBattleLog.Add($"{enemy.Nickname} zwycięża!");
                         return;
                     }
 
-                    enemyHealthPoints = PerformPlayerAttack(enemyHealthPoints, player, enemy, true);
+                    enemyHealthPoints = PerformAttack(enemyHealthPoints, player, enemy, attackerIsPlayer: true, log: true);
                     if (enemyHealthPoints < 1)
                     {
                         SingleBattleLog.Add($"{player.Nickname} zwycięża!");
@@ -297,14 +297,14 @@ namespace AmoSim2.ViewModel
                 AverageRounds++;
                 if (playerGoesFirst)
                 {
-                    enemyHealthPoints = PerformPlayerAttack(enemyHealthPoints, player, enemy);
+                    enemyHealthPoints = PerformAttack(enemyHealthPoints, player, enemy, attackerIsPlayer: true, log: false);
                     if (enemyHealthPoints < 1)
                     {
                         WinCount += 1;
                         return;
                     }
 
-                    playerHealthPoints = PerformEnemyAttack(playerHealthPoints, enemy, player);
+                    playerHealthPoints = PerformAttack(playerHealthPoints, enemy, player, attackerIsPlayer: false, log: false);
                     if (playerHealthPoints < 1)
                     {
                         LostCount += 1;
@@ -313,14 +313,14 @@ namespace AmoSim2.ViewModel
                 }
                 else
                 {
-                    playerHealthPoints = PerformEnemyAttack(playerHealthPoints, enemy, player);
+                    playerHealthPoints = PerformAttack(playerHealthPoints, enemy, player, attackerIsPlayer: false, log: false);
                     if (playerHealthPoints < 1)
                     {
                         LostCount += 1;
                         return;
                     }
 
-                    enemyHealthPoints = PerformPlayerAttack(enemyHealthPoints, player, enemy);
+                    enemyHealthPoints = PerformAttack(enemyHealthPoints, player, enemy, attackerIsPlayer: true, log: false);
                     if (enemyHealthPoints < 1)
                     {
                         WinCount += 1;
@@ -336,125 +336,77 @@ namespace AmoSim2.ViewModel
             }
         }
 
-        private int PerformPlayerAttack(int targetHP, Model player, Model enemy, bool log = false)
+        private int PerformAttack(int targetHP, Model attacker, Model defender, bool attackerIsPlayer, bool log = false)
         {
-            double hitChance = Convert.ToInt32(Math.Max(player.PlayerHitChance, 2));
+            double hitChance = Convert.ToInt32(Math.Max(attackerIsPlayer ? attacker.PlayerHitChance : attacker.EnemyHitChance, 2));
 
-            int fullAttacks = (int)Math.Floor(player.PlayerInicjatywaBase);
-            double chanceForExtraAttack = (int)Math.Round((player.PlayerInicjatywaBase - fullAttacks)*100);
+            int fullAttacks = (int)Math.Floor(attackerIsPlayer ? attacker.PlayerInicjatywaBase : attacker.EnemyInicjatywaBase);
+            double chanceForExtraAttack = (int)Math.Round(((attackerIsPlayer ? attacker.PlayerInicjatywaBase : attacker.EnemyInicjatywaBase) - fullAttacks) * 100);
 
-            for (int i = 0; i < fullAttacks && (targetHP > 0); i++)
+            for (int i = 0; i < fullAttacks && targetHP > 0; i++)
             {
                 if (hitChance < rnd.Next(1, 101))
                 {
-                    if (log) SingleBattleLog.Add($"{enemy.Nickname} uniknął ataku {player.Nickname}.");
+                    if (log) SingleBattleLog.Add($"{defender.Nickname} uniknął ataku {attacker.Nickname}.");
                     continue;
                 }
 
-                if (enemy.BlockChance >= rnd.Next(1, 101))
+                if (defender.BlockChance >= rnd.Next(1, 101))
                 {
-                    if (log) SingleBattleLog.Add($"{enemy.Nickname} zablokował atak {player.Nickname}.");
+                    if (log) SingleBattleLog.Add($"{defender.Nickname} zablokował atak {attacker.Nickname}.");
                     continue;
                 }
 
-                double crit = player.Critical();
-                int damage = CalculateDamage(player, enemy, crit);
+                double crit = attacker.Critical();
+                int damage = CalculateDamage(attacker, defender, crit);
 
-                if (damage > 0 && player.Class == "Czarnoksiężnik" || player.Class == "Mag" && enemy.Race == "Jaszczuroczłek")
+                if (damage > 0 &&
+                   ((attacker.Class == "Czarnoksiężnik" || attacker.Class == "Mag") && defender.Race == "Jaszczuroczłek"))
+                {
                     damage = (int)(damage * 0.95);
+                }
 
                 targetHP -= damage;
 
                 if (log)
                 {
                     if (crit > 1)
-                        SingleBattleLog.Add($"{player.Nickname} w przypływie szału walki atakuje {enemy.Nickname} i zadaje {damage} obrażeń! ({targetHP} zostało).(CRIT x{crit})");
+                        SingleBattleLog.Add($"{attacker.Nickname} w przypływie szału walki atakuje {defender.Nickname} i zadaje {damage} obrażeń! ({targetHP} zostało).(CRIT x{crit})");
                     else
-                        SingleBattleLog.Add($"{player.Nickname} atakuje {enemy.Nickname} i zadaje {damage} obrażeń! ({targetHP} zostało)");
+                        SingleBattleLog.Add($"{attacker.Nickname} atakuje {defender.Nickname} i zadaje {damage} obrażeń! ({targetHP} zostało)");
                 }
             }
 
-            if (fullAttacks >= 1 && chanceForExtraAttack < rnd.Next(1, 101) && (targetHP > 0) && hitChance < rnd.Next(1, 101) && enemy.BlockChance < rnd.Next(1, 101))
+       
+            if (fullAttacks > 1 &&
+                chanceForExtraAttack < rnd.Next(1, 101) &&
+                targetHP > 0 &&
+                hitChance >= rnd.Next(1, 101) &&
+                defender.BlockChance < rnd.Next(1, 101))
             {
-                double crit = player.Critical();
-                int damage = CalculateDamage(player, enemy, crit);
+                double crit = attacker.Critical();
+                int damage = CalculateDamage(attacker, defender, crit);
 
-                if (damage > 0 && player.Class == "Czarnoksiężnik" || player.Class == "Mag" && enemy.Race == "Jaszczuroczłek")
+                if (damage > 0 &&
+                   ((attacker.Class == "Czarnoksiężnik" || attacker.Class == "Mag") && defender.Race == "Jaszczuroczłek"))
+                {
                     damage = (int)(damage * 0.95);
+                }
 
                 targetHP -= damage;
 
                 if (log)
                 {
                     if (crit > 1)
-                        SingleBattleLog.Add($"{player.Nickname} w przypływie szału walki atakuje {enemy.Nickname} i zadaje {damage} obrażeń! ({targetHP} zostało).(CRIT x{crit})");
+                        SingleBattleLog.Add($"{attacker.Nickname} w przypływie szału walki atakuje {defender.Nickname} i zadaje {damage} obrażeń! ({targetHP} zostało).(CRIT x{crit})");
                     else
-                        SingleBattleLog.Add($"{player.Nickname} atakuje {enemy.Nickname} i zadaje {damage} obrażeń! ({targetHP} zostało)");
+                        SingleBattleLog.Add($"{attacker.Nickname} atakuje {defender.Nickname} i zadaje {damage} obrażeń! ({targetHP} zostało)");
                 }
             }
 
             return targetHP;
         }
 
-        private int PerformEnemyAttack(int targetHP, Model enemy, Model player, bool log = false)
-        {
-            double hitChance = Convert.ToInt32(Math.Max(enemy.EnemyHitChance, 2));
-
-            int fullAttacks = (int)Math.Floor(enemy.EnemyInicjatywaBase);
-            double chanceForExtraAttack = (int)Math.Round((enemy.EnemyInicjatywaBase - fullAttacks) * 100);
-
-            for (int i = 0; i < fullAttacks && (targetHP > 0); i++)
-            {
-                if (hitChance < rnd.Next(1, 101))
-                {
-                    if (log) SingleBattleLog.Add($"{player.Nickname} uniknął ataku {enemy.Nickname} .");
-                    continue;
-                }
-
-                if (player.BlockChance >= rnd.Next(1, 101))
-                {
-                    if (log) SingleBattleLog.Add($"{player.Nickname} zablokował atak {enemy.Nickname}.");
-                    continue;
-                }
-
-                double crit = enemy.Critical();
-                int damage = CalculateDamage(enemy, player, crit);
-
-                if (damage > 0 && enemy.Class == "Czarnoksiężnik" || enemy.Class == "Mag" && player.Race == "Jaszczuroczłek")
-                    damage = (int)(damage * 0.95);
-
-                targetHP -= damage;
-
-                if (log)
-                {
-                    if (crit > 1)
-                        SingleBattleLog.Add($"{enemy.Nickname} w przypływie szału walki atakuje {player.Nickname} i zadaje {damage} obrażeń! ({targetHP} zostało).(CRIT x{crit})");
-                    else
-                        SingleBattleLog.Add($"{enemy.Nickname} atakuje {player.Nickname} i zadaje {damage} obrażeń! ({targetHP} zostało)");
-                }
-            }
-
-            if (fullAttacks >= 1 && chanceForExtraAttack < rnd.Next(1, 101) && (targetHP > 0) && hitChance < rnd.Next(1, 101) && player.BlockChance < rnd.Next(1, 101))
-            {
-                double crit = enemy.Critical();
-                int damage = CalculateDamage(enemy, player, crit);
-
-                if (damage > 0 && enemy.Class == "Czarnoksiężnik" || enemy.Class == "Mag" && player.Race == "Jaszczuroczłek")
-                    damage = (int)(damage * 0.95);
-
-                targetHP -= damage;
-
-                if (log)
-                {
-                    if (crit > 1)
-                        SingleBattleLog.Add($"{enemy.Nickname} w przypływie szału walki atakuje {player.Nickname} i zadaje {damage} obrażeń! ({targetHP} zostało).(CRIT x{crit})");
-                    else
-                        SingleBattleLog.Add($"{enemy.Nickname} atakuje {player.Nickname} i zadaje {damage} obrażeń! ({targetHP} zostało)");
-                }
-            }
-
-            return targetHP;
-        }
 
         private Dictionary<double, int> criticalValueCounts = new Dictionary<double, int>();
 
