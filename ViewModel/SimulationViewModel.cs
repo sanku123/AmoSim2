@@ -187,14 +187,14 @@ namespace AmoSim2.ViewModel
 
                 if (playerGoesFirst)
                 {
-                    enemyHealthPoints = PerformAttack(enemyHealthPoints, player, enemy, attackerIsPlayer: true, log: true);
+                    enemyHealthPoints = PerformAttack(enemyHealthPoints, player, enemy, attackerIsPlayer: true, allowExtraAttack: true, log: true);
                     if (enemyHealthPoints < 1)
                     {
                         SingleBattleLog.Add($"{player.Nickname} zwycięża!");
                         return;
                     }
 
-                    playerHealthPoints = PerformAttack(playerHealthPoints, enemy, player, attackerIsPlayer: false, log: true);
+                    playerHealthPoints = PerformAttack(playerHealthPoints, enemy, player, attackerIsPlayer: false, allowExtraAttack: false, log: true);
                     if (playerHealthPoints < 1)
                     {
                         SingleBattleLog.Add($"{enemy.Nickname} zwycięża!");
@@ -203,14 +203,14 @@ namespace AmoSim2.ViewModel
                 }
                 else
                 {
-                    playerHealthPoints = PerformAttack(playerHealthPoints, enemy, player, attackerIsPlayer: false, log: true);
+                    playerHealthPoints = PerformAttack(playerHealthPoints, enemy, player, attackerIsPlayer: false, allowExtraAttack: true, log: true);
                     if (playerHealthPoints < 1)
                     {
                         SingleBattleLog.Add($"{enemy.Nickname} zwycięża!");
                         return;
                     }
 
-                    enemyHealthPoints = PerformAttack(enemyHealthPoints, player, enemy, attackerIsPlayer: true, log: true);
+                    enemyHealthPoints = PerformAttack(enemyHealthPoints, player, enemy, attackerIsPlayer: true, allowExtraAttack: false, log: true);
                     if (enemyHealthPoints < 1)
                     {
                         SingleBattleLog.Add($"{player.Nickname} zwycięża!");
@@ -297,14 +297,14 @@ namespace AmoSim2.ViewModel
                 AverageRounds++;
                 if (playerGoesFirst)
                 {
-                    enemyHealthPoints = PerformAttack(enemyHealthPoints, player, enemy, attackerIsPlayer: true, log: false);
+                    enemyHealthPoints = PerformAttack(enemyHealthPoints, player, enemy, attackerIsPlayer: true, allowExtraAttack: true, log: false);
                     if (enemyHealthPoints < 1)
                     {
                         WinCount += 1;
                         return;
                     }
 
-                    playerHealthPoints = PerformAttack(playerHealthPoints, enemy, player, attackerIsPlayer: false, log: false);
+                    playerHealthPoints = PerformAttack(playerHealthPoints, enemy, player, attackerIsPlayer: false, allowExtraAttack: false, log: false);
                     if (playerHealthPoints < 1)
                     {
                         LostCount += 1;
@@ -313,14 +313,14 @@ namespace AmoSim2.ViewModel
                 }
                 else
                 {
-                    playerHealthPoints = PerformAttack(playerHealthPoints, enemy, player, attackerIsPlayer: false, log: false);
+                    playerHealthPoints = PerformAttack(playerHealthPoints, enemy, player, attackerIsPlayer: false, allowExtraAttack: true, log: false);
                     if (playerHealthPoints < 1)
                     {
                         LostCount += 1;
                         return;
                     }
 
-                    enemyHealthPoints = PerformAttack(enemyHealthPoints, player, enemy, attackerIsPlayer: true, log: false);
+                    enemyHealthPoints = PerformAttack(enemyHealthPoints, player, enemy, attackerIsPlayer: true, allowExtraAttack: false, log: false);
                     if (enemyHealthPoints < 1)
                     {
                         WinCount += 1;
@@ -336,7 +336,7 @@ namespace AmoSim2.ViewModel
             }
         }
 
-        private int PerformAttack(int targetHP, Model attacker, Model defender, bool attackerIsPlayer, bool log = false)
+        private int PerformAttack(int targetHP, Model attacker, Model defender, bool attackerIsPlayer, bool allowExtraAttack, bool log = false)
         {
             double hitChance = Convert.ToInt32(Math.Max(attackerIsPlayer ? attacker.PlayerHitChance : attacker.EnemyHitChance, 2));
 
@@ -377,9 +377,10 @@ namespace AmoSim2.ViewModel
                 }
             }
 
-       
-            if (fullAttacks > 1 &&
-                chanceForExtraAttack < rnd.Next(1, 101) &&
+
+            if (allowExtraAttack &&
+                fullAttacks >= 1 &&
+                chanceForExtraAttack >= rnd.Next(1, 101) &&
                 targetHP > 0 &&
                 hitChance >= rnd.Next(1, 101) &&
                 defender.BlockChance < rnd.Next(1, 101))
