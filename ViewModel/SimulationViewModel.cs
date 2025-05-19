@@ -375,6 +375,15 @@ namespace AmoSim2.ViewModel
                 }
 
                 double crit = attacker.Critical();
+
+                if (crit > 1)
+                {
+                    if (5 >= rnd.Next(1, 101))
+                    {
+                        if (log) SingleBattleLog.Add($"{attacker.Nickname}  z wielką mocą atakuje {defender.Nickname} lecz ten odpiera atak!");
+                        continue;
+                    }
+                }
                 int damage = CalculateDamage(attacker, defender, crit);
 
                 if (damage > 0 && (attacker.Class == "Czarnoksiężnik" || attacker.Class == "Mag") && defender.Race == "Jaszczuroczłek")
