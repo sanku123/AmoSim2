@@ -343,6 +343,8 @@ namespace AmoSim2.ViewModel
             int fullAttacks = (int)Math.Floor(attackerIsPlayer ? attacker.PlayerInicjatywaBase : attacker.EnemyInicjatywaBase);
             double chanceForExtraAttack = (int)Math.Round(((attackerIsPlayer ? attacker.PlayerInicjatywaBase : attacker.EnemyInicjatywaBase) - fullAttacks) * 100);
 
+            int blockChance = 0;
+
             for (int i = 0; i < fullAttacks && targetHP > 0; i++)
             {
                 if (hitChance < rnd.Next(1, 101))
@@ -351,7 +353,22 @@ namespace AmoSim2.ViewModel
                     continue;
                 }
 
-                if (defender.BlockChance >= rnd.Next(1, 101))
+                if ((attacker.Class == "Czarnoksiężnik" || attacker.Class == "Mag") && defender.Class == "Barbarzyńca")
+                {
+                    blockChance = (int)Math.Ceiling(defender.Level / 12);
+                }
+                else if ((attacker.Class != "Czarnoksiężnik" || attacker.Class != "Mag") && defender.Class == "Wojownik" && defender.Race == "Elf")
+                {
+                    blockChance = (int)Math.Ceiling(defender.Level / 7.5);
+
+                }
+                else if ((attacker.Class != "Czarnoksiężnik" || attacker.Class != "Mag") && defender.Class == "Wojownik")
+                {
+                    blockChance = (int)Math.Ceiling(defender.Level / 15);
+
+                }
+
+                if (blockChance >= rnd.Next(1, 101))
                 {
                     if (log) SingleBattleLog.Add($"{defender.Nickname} zablokował atak {attacker.Nickname}.");
                     continue;
@@ -386,7 +403,7 @@ namespace AmoSim2.ViewModel
                 chanceForExtraAttack >= rnd.Next(1, 101) &&
                 targetHP > 0 &&
                 hitChance >= rnd.Next(1, 101) &&
-                defender.BlockChance < rnd.Next(1, 101))
+                blockChance < rnd.Next(1, 101))
             {
                 double crit = attacker.Critical();
                 int damage = CalculateDamage(attacker, defender, crit);

@@ -343,26 +343,6 @@ namespace AmoSim2.Player
         [JsonIgnore]
         public int WarlockPoisonDamage => Class == "Czarnoksiężnik" ? (int)(Level * 0.75) : 0;
 
-        [JsonIgnore]
-        public double BlockChance
-        {
-            get
-            {
-                switch (Class)
-                {
-                    case "Wojownik" when Race == "Elf":
-                        return Math.Floor(Level / 15) * 2;
-
-                    case "Wojownik" when Class != "Mag":
-                        return Math.Floor(Level / 15);
-
-                    case "Barbarzyńca" when Class == "Mag":
-                        return Math.Floor(Level / 10);
-
-                    default:
-                        return 0;
-                }
-            }
-        }
+       
     }
 }
