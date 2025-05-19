@@ -37,7 +37,7 @@ namespace AmoSim2.Player
             {
                 switch (SelectedRobe)
                 {
-                    case "Hobbicka" when Race == "Hobbit":
+                    case "Hobbicka" when Race == "Hobbit" && Class == "Mag":
                         return 3000;
                     case "Hobbicka":
                         return 2000;

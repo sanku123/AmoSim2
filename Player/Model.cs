@@ -71,9 +71,9 @@ namespace AmoSim2.Player
         {
             get
             {
-                if (Warrior) return (Strength + WeaponDMG + HumanAttackBonus + DwarfAttackBonus) * RacialEnemyBonus;
-                else if (Mage) return Inteligence * SpellDamage;
-                else if (Archer) return (((Agility * 0.8) + BonusAbove200Level(2) + WeaponDMG) * ThiefDamagePenalty) * RacialEnemyBonus;
+                if (Warrior) return (Strength + WeaponDMG + DwarfAttackBonus) * ThiefDamagePenalty * RacialEnemyBonus * HumanAttackBonus;
+                else if (Mage) return Inteligence * SpellDamage * GnomeAttackBonus;
+                else if (Archer) return (((Agility * 0.8) + BonusAbove200Level(2) + WeaponDMG) * ThiefDamagePenalty) * RacialEnemyBonus * ElfAttackBonus;
                 return 0;
             }
         }
@@ -111,7 +111,7 @@ namespace AmoSim2.Player
         {
             get
             {
-                if ((Class == "Mag" || Class == "Czarnoksiężnik") && Race == "Elf") return (Inteligence + WillPower) * 3.3;
+                if ((Class == "Mag" || Class == "Czarnoksiężnik") && Race == "Gnom") return (Inteligence + WillPower) * 3.3;
                 else if ((Class == "Mag" || Class == "Czarnoksiężnik")) return (Inteligence + WillPower) * 3;
                 return 0;
             }
@@ -200,13 +200,13 @@ namespace AmoSim2.Player
                 switch (Class)
                 {
                     case "Złodziej" when Race == "Hobbit":
-                        return 3 * Robbery;
+                        return 1 * Robbery;
 
                     case "Złodziej" when Race == "Wampir":
-                        return Robbery;
+                        return 1 * Robbery;
 
                     case "Złodziej" when Race != "Hobbit" && Race != "Wampir":
-                        return 2 * Robbery;
+                        return 1 * Robbery;
 
                     default:
                         return 0;
@@ -238,14 +238,12 @@ namespace AmoSim2.Player
         {
             get
             {
-                if (Race == "Jaszczuroczłek" && Class == "Łowca" && RacialEnemyActive)
-                {
-                    return 1.2;
-                }
-                else if (Class == "Łowca" && RacialEnemyActive)
-                {
+                if (!RacialEnemyActive)
+                    return 1;
+
+                if (Class == "Łowca")
                     return 1.15;
-                }
+
                 return 1;
             }
         }
@@ -261,7 +259,7 @@ namespace AmoSim2.Player
                     return Level <= 100 ? 6 * Level :
                            Level <= 200 ? 600 + 8 * (Level - 100) :
                            Level <= 300 ? 1400 + 10 * (Level - 200) :
-                           2400 + 14 * (Level - 300);
+                           2400 + 12 * (Level - 300);
                 }
                 return 0;
             }
@@ -277,7 +275,13 @@ namespace AmoSim2.Player
         public double HumanDefenceFromEQ => Race == "Człowiek" ? EQdefence * 0.1 : 0;
 
         [JsonIgnore]
-        public double HumanAttackBonus => Race == "Człowiek" && Warrior ? WeaponDMG * 0.05 : 0;
+        public double HumanAttackBonus => Race == "Człowiek" && Warrior ? 0.05 : 0;
+
+        [JsonIgnore]
+        public double ElfAttackBonus => Race == "Elf" && Archer ? 0.05 : 0;
+
+        [JsonIgnore]
+        public double GnomeAttackBonus => Race == "Gnom" && Mage ? 0.05 : 0;
 
         [JsonIgnore]
         public double DwarfAttackBonus => Race == "Krasnolud" && Class == "Wojownik" ? WeaponDMG * 0.5 : 0;
@@ -337,7 +341,7 @@ namespace AmoSim2.Player
         public int BonusŁowcy => Class == "Łowca" ? (int)(Level * 2 / 3.0) : 0;
 
         [JsonIgnore]
-        public int WarlockPoisonDamage => Class == "Czarnoksiężnik" ? (int)(Level * 1.25) : 0;
+        public int WarlockPoisonDamage => Class == "Czarnoksiężnik" ? (int)(Level * 0.75) : 0;
 
         [JsonIgnore]
         public double BlockChance
