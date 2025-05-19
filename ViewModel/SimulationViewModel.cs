@@ -353,16 +353,16 @@ namespace AmoSim2.ViewModel
                     continue;
                 }
 
-                if ((attacker.Class == "Czarnoksiężnik" || attacker.Class == "Mag") && defender.Class == "Barbarzyńca")
+                if (attacker.Mage && defender.Class == "Barbarzyńca")
                 {
                     blockChance = (int)Math.Ceiling(defender.Level / 12);
                 }
-                else if ((attacker.Class != "Czarnoksiężnik" || attacker.Class != "Mag") && defender.Class == "Wojownik" && defender.Race == "Elf")
+                else if (!attacker.Mage && defender.Class == "Wojownik" && defender.Race == "Elf")
                 {
                     blockChance = (int)Math.Ceiling(defender.Level / 7);
 
                 }
-                else if ((attacker.Class != "Czarnoksiężnik" || attacker.Class != "Mag") && defender.Class == "Wojownik")
+                else if (!attacker.Mage && defender.Class == "Wojownik")
                 {
                     blockChance = (int)Math.Ceiling(defender.Level / 15);
 
@@ -386,11 +386,11 @@ namespace AmoSim2.ViewModel
                 }
                 int damage = CalculateDamage(attacker, defender, crit);
 
-                if (damage > 0 && (attacker.Class == "Czarnoksiężnik" || attacker.Class == "Mag") && defender.Race == "Jaszczuroczłek")
+                if (damage > 0 && attacker.Mage && defender.Race == "Jaszczuroczłek")
                 {
                     damage = (int)(damage * 0.95);
                 }
-                if (damage > 0 && (attacker.Class != "Czarnoksiężnik" || attacker.Class != "Mag") && defender.Race == "Wilkołak")
+                if (damage > 0 && !attacker.Mage && defender.Race == "Wilkołak")
                 {
                     damage = (int)(damage * 0.95);
                 }
@@ -418,11 +418,11 @@ namespace AmoSim2.ViewModel
                 int damage = CalculateDamage(attacker, defender, crit);
 
                 if (damage > 0 &&
-                   ((attacker.Class == "Czarnoksiężnik" || attacker.Class == "Mag") && defender.Race == "Jaszczuroczłek"))
+                   (attacker.Mage && defender.Race == "Jaszczuroczłek"))
                 {
                     damage = (int)(damage * 0.95);
                 }
-                if (damage > 0 && (attacker.Class != "Czarnoksiężnik" || attacker.Class != "Mag") && defender.Race == "Wilkołak")
+                if (damage > 0 && !attacker.Mage && defender.Race == "Wilkołak")
                 {
                     damage = (int)(damage * 0.95);
                 }
