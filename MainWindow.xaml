@@ -171,7 +171,7 @@
               HorizontalScrollBarVisibility="Disabled"
               HorizontalContentAlignment="Stretch"
               VerticalContentAlignment="Top" 
-                          Height="500">
+                          Height="420">
                 <TextBox x:Name="BattleLog"
              DataContext="{Binding SimulationViewModel, Source={StaticResource ViewModelLocator}}"
              Margin="8,16,8,12"
