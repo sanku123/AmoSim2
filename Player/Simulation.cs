@@ -74,7 +74,7 @@ namespace AmoSim2.Player
         {
             get
             {
-                _enemyInicjatywaBase = Math.Max(1, Math.Min(5, Math.Round(PlayerViewModel.Enemy.BattleSpeed / PlayerViewModel.Player.BattleSpeed, 3)));
+                _enemyInicjatywaBase = Math.Max(1, Math.Min(5, Math.Round(PlayerViewModel.Enemy.BattleSpeed / PlayerViewModel.Player.BattleSpeed, 3))); 
                 return _enemyInicjatywaBase;
             }
             set
