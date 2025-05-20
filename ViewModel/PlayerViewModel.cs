@@ -38,6 +38,7 @@ namespace AmoSim2.Player
                 }
             };
 
+
             Enemy.PropertyChanged += (sender, e) =>
             {
                 if (e.PropertyName == nameof(Enemy.BattleSpeed))
@@ -54,6 +55,8 @@ namespace AmoSim2.Player
                 }
             };
         }
+
+
         private void UpdatePlayerHitChance()
         {
             Player.PlayerHitChance = Player.CalculateHitChance(Player.HitAbility, Enemy.EvasionFull);
@@ -62,13 +65,15 @@ namespace AmoSim2.Player
         {
             Enemy.EnemyHitChance = Player.CalculateHitChance(Enemy.EvasionFull, Player.HitAbility);
         }
+
         private void UpdatePlayerInicjatywa()
         {
-            Player.PlayerInicjatywa = Player.GetInicjatywa(Player.PlayerInicjatywaBase);
+            Player.PlayerInicjatywaBase = Math.Max(1, Math.Min(5, Math.Round(Player.BattleSpeed / Enemy.BattleSpeed, 3)));
+
         }
         private void UpdateEnemyInicjatywa()
         {
-            Enemy.EnemyInicjatywa = Player.GetInicjatywa(Enemy.EnemyInicjatywaBase);
+            Enemy.EnemyInicjatywaBase = Math.Max(1, Math.Min(5, Math.Round(Enemy.BattleSpeed / Player.BattleSpeed, 3)));
         }
         private Model InitializeCharacter(string nickname)
         {

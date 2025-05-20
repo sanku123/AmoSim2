@@ -46,6 +46,47 @@ namespace AmoSim2.Player
             }
         }
 
+
+
+
+        private double _playerInicjatywaBase;
+        [JsonIgnore]
+        public double PlayerInicjatywaBase
+        {
+            get
+            {
+                _playerInicjatywaBase = Math.Max(1, Math.Min(5, Math.Round(PlayerViewModel.Player.BattleSpeed / PlayerViewModel.Enemy.BattleSpeed, 3)));
+                return _playerInicjatywaBase;
+            }
+            set
+            {
+                if (_playerInicjatywaBase != value)
+                {
+                    _playerInicjatywaBase = value;
+                    OnPropertyChanged(nameof(PlayerInicjatywaBase));
+                }
+            }
+        }
+
+        private double _enemyInicjatywaBase;
+        [JsonIgnore]
+        public double EnemyInicjatywaBase
+        {
+            get
+            {
+                _enemyInicjatywaBase = Math.Max(1, Math.Min(5, Math.Round(PlayerViewModel.Enemy.BattleSpeed / PlayerViewModel.Player.BattleSpeed, 3)));
+                return _enemyInicjatywaBase;
+            }
+            set
+            {
+                if (_enemyInicjatywaBase != value)
+                {
+                    _enemyInicjatywaBase = value;
+                    OnPropertyChanged(nameof(EnemyInicjatywaBase));
+                }
+            }
+        }
+
         [JsonIgnore]
         public PlayerViewModel PlayerViewModel => ServiceLocator.Current.GetInstance<PlayerViewModel>();
 
@@ -54,68 +95,5 @@ namespace AmoSim2.Player
             double val = Math.Round(((Math.Log10(attackerAbility + 200) - Math.Log10(defenderEvasion + 200)) * 500) + 50, 2);
             return Math.Min(val, 98); 
         }
-        [JsonIgnore]
-        public double PlayerInicjatywaBase => Math.Max(1, Math.Min(5, Math.Round(PlayerViewModel.Player.BattleSpeed / PlayerViewModel.Enemy.BattleSpeed, 3))); 
-        
-        [JsonIgnore]
-        public double EnemyInicjatywaBase => Math.Max(1, Math.Min(5, Math.Round(PlayerViewModel.Enemy.BattleSpeed / PlayerViewModel.Player.BattleSpeed, 3)));
-
-
-
-
-        private double _playerInicjatywa;
-        [JsonIgnore]
-        public double PlayerInicjatywa
-        {
-            get
-            {
-                _playerInicjatywa = GetInicjatywa(PlayerInicjatywaBase);
-
-                return _playerInicjatywa;
-            }
-            set
-            {
-                if (_playerInicjatywa != value)
-                {
-                    _playerInicjatywa = value;
-                    OnPropertyChanged(nameof(PlayerHitChance));
-                }
-            }
-        }
-
-   
-        private double _enemyInicjatywa;
-        [JsonIgnore]
-        public double EnemyInicjatywa
-        {
-            get
-            {
-                _enemyInicjatywa = GetInicjatywa(EnemyInicjatywaBase);
-
-                return _enemyInicjatywa;
-            }
-            set
-            {
-                if (_enemyInicjatywa != value)
-                {
-                    _enemyInicjatywa = value;
-                    OnPropertyChanged(nameof(PlayerHitChance));
-                }
-            }
-        }
-
-        //[JsonIgnore]
-        //public double PlayerInicjatywa => GetInicjatywa(PlayerInicjatywaBase);
-
-        //[JsonIgnore]
-        //public double EnemyInicjatywa => GetInicjatywa(EnemyInicjatywaBase);
-
-        public double GetInicjatywa(double baseValue)
-        {
-            return baseValue >= 4.2 ? 5 :
-                   baseValue >= 3.2 ? 4 :
-                   baseValue >= 2.2 ? 3 :
-                   baseValue >= 1.15 ? 2 : 1;
-        } 
     }
 }
