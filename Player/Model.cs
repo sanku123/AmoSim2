@@ -317,7 +317,7 @@ namespace AmoSim2.Player
                 { 9999, 1 }
             });
 
-            if ((CritChance >= random.Next(1, 101)) && (10 <= random.Next(1, 101)))
+            if (CritChance >= random.Next(1, 101))
             {
                 if (Class == "Złodziej" && Archer) return ((double)thief + 10) / 100;
                 if (Class == "Złodziej") return (double)thief / 100;
