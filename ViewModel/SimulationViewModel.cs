@@ -466,7 +466,7 @@ namespace AmoSim2.ViewModel
                     criticalValueCounts[criticalMultiplier] = count + 1;
             }
 
-            int calculatedDamage = (int)Math.Max(0, baseDamage * criticalMultiplier * attacker.ThiefDamagePenalty - defender.Defence - warlockDefenceBreak);
+            int calculatedDamage = (int)Math.Max(0, baseDamage * criticalMultiplier * attacker.ThiefDamagePenalty - defender.Defence + warlockDefenceBreak);
 
             return calculatedDamage + bonusDamage;
         }
